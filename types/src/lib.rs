@@ -75,7 +75,7 @@ pub const HASH_LENGTH: usize = 32;
 /// - Merkle roots
 ///
 /// Hashes have no identity or ownership semantics
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Hash([u8; HASH_LENGTH]);
 
 impl Hash {
@@ -217,7 +217,7 @@ impl fmt::Display for Epoch {
 /// - a prediction market
 ///
 /// ObjectIds are opaque identifiers with no embedded semantics.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct ObjectId(Hash);
 
 impl ObjectId {
