@@ -38,7 +38,13 @@ impl Address {
         &self.0
     }
 
-    /// Returns a zero address (all bytes set to zero).
+    /// Returns the zero address (all bytes set to zero).
+    ///
+    /// ⚠️ PROTOCOL NOTE:
+    /// - The zero address is NOT a valid user.
+    /// - It MUST NOT be used for authorization or ownership.
+    /// - It is intended only as a sentinel or placeholder value.
+    /// - Any semantic meaning must be defined explicitly at higher layers.
     pub const fn zero() -> Self {
         Self([0u8; ADDRESS_LENGTH])
     }
