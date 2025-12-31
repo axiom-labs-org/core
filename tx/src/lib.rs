@@ -5,9 +5,8 @@
 
 use std::collections::BTreeMap;
 
-use axiom_types::{Hash, ObjectId};
-use axiom_types::{Slot};
-use axiom_state::{ReadSet, WriteSet};
+use axiom_types::{Hash, ObjectId, Address, Slot};
+use axiom_state::{ReadSet, WriteSet, StateStore};
 
 // -------------------------------------------------------------------------------------------------------------------------- //
 
@@ -104,6 +103,26 @@ impl TransactionCell {
         Hash::new(blake3::hash(&bytes).into())
     }
 
+    /// The caller must be authorized to perform all writes
+    pub fn validate_ownership(&self, caller: Address, state: &StateStore) -> Result<(), TxError> {
+        for object_id in self.write_set.keys() {
+            let object = state.get(object_id)
+                .ok_or(TxError::ObjectNotFound {
+                    object: *object_id,
+                })?;
+            
+            if object.owner() != caller {
+                return Err(TxError::UnauthorizedWrite {
+                    object: *object_id,
+                    owner: object.owner(),
+                    caller,
+                });
+            }
+        }
+
+        Ok(())
+    }
+
     /// Returns the slot of the transaction cell.
     pub fn slot(&self) -> Slot {
         self.slot
@@ -129,6 +148,12 @@ impl TransactionCell {
 #[derive(Debug)]
 pub enum TxError {
     WriteWithoutRead {object: ObjectId},
+    UnauthorizedWrite {
+        object: ObjectId,
+        owner: Address,
+        caller: Address,
+    },
+    ObjectNotFound {object: ObjectId},
 }
 
 // -------------------------------------------------------------------------------------------------------------------------- //

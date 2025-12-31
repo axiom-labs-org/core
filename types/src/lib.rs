@@ -37,6 +37,11 @@ impl Address {
     pub const fn as_bytes(&self) -> &[u8; ADDRESS_LENGTH] {
         &self.0
     }
+
+    /// Returns a zero address (all bytes set to zero).
+    pub const fn zero() -> Self {
+        Self([0u8; ADDRESS_LENGTH])
+    }
 }
 
 impl fmt::Debug for Address {
