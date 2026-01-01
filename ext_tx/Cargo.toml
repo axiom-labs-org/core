@@ -1,9 +1,10 @@
 [package]
-name = "axiom-state"
+name = "axiom-ext_tx"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
 
 [dependencies]
 axiom-types = { path = "../types" }
+axiom-tx = { path = "../tx" }
 blake3 = "1.5"
