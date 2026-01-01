@@ -6,10 +6,12 @@
 pub mod store;
 pub mod object;
 pub mod nonce;
+pub mod error;
 
 pub use store::{StateStore, ReadSet, WriteSet};
 pub use object::{StateObject, Version};
 pub use nonce::nonce_object_id;
+pub use error::StateError;
 
 
 

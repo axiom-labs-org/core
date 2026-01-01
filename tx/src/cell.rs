@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use axiom_types::{Hash, ObjectId, Address, Slot};
 use axiom_state::{ReadSet, WriteSet, StateStore};
+use crate::TxError;
 
 // -------------------------------------------------------------------------------------------------------------------------- //
 
@@ -139,19 +140,6 @@ impl TransactionCell {
     pub fn call(&self) -> &CallData {
         &self.call
     }
-}
-
-
-/// Errors related to transaction cells.
-#[derive(Debug)]
-pub enum TxError {
-    WriteWithoutRead {object: ObjectId},
-    UnauthorizedWrite {
-        object: ObjectId,
-        owner: Address,
-        caller: Address,
-    },
-    ObjectNotFound {object: ObjectId},
 }
 
 // -------------------------------------------------------------------------------------------------------------------------- //
