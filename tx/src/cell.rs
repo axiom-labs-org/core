@@ -1,9 +1,8 @@
-
 /// Imports and dependencies
 use std::collections::BTreeMap;
 
-use axiom_types::{Hash, ObjectId, Address, Slot};
-use axiom_state::{ReadSet, WriteSet, StateStore};
+use axiom_types::{Hash, ObjectId, Slot};
+use axiom_state::{ReadSet};
 use crate::TxError;
 
 // -------------------------------------------------------------------------------------------------------------------------- //
@@ -14,7 +13,6 @@ use crate::TxError;
 ///
 /// The protocol does not interpret call data. It is passed to the
 /// execution runtime, which enforces read/write restrictions.
-
 #[derive(Clone, Debug)]
 pub struct CallData {
     /// Target of the call (contract or object).
@@ -27,21 +25,28 @@ pub struct CallData {
     pub payload: Vec<u8>,
 }
 
+/// Intent describing which objects may be written.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WriteIntent {
+    Create,
+    Modify,
+    Delete,
+}
 
 /// A transaction cell.
 ///
 /// This is the smallest schedulable execution unit in the Axiom protocol.
-/// All state access is explicit and deterministic.
+/// It declares *what may be touched*, not *what will be written*.
 #[derive(Clone, Debug)]
 pub struct TransactionCell {
-    /// Slot in which the transaction is valid.
+    /// Slot in which the transaction is valid (context, not identity).
     slot: Slot,
 
     /// Read set of the transaction.
     read_set: ReadSet,
 
-    /// Write set of the transaction.
-    write_set: WriteSet,
+    /// Write intent set of the transaction.
+    write_set: BTreeMap<ObjectId, WriteIntent>,
 
     /// Call data describing execution intent.
     call: CallData,
@@ -52,13 +57,15 @@ impl TransactionCell {
     pub fn new(
         slot: Slot,
         read_set: ReadSet,
-        write_set: WriteSet,
+        write_set: BTreeMap<ObjectId, WriteIntent>,
         call: CallData,
     ) -> Result<Self, TxError> {
         // Enforce write ⊆ read
         for object_id in write_set.keys() {
             if !read_set.contains_key(object_id) {
-                return Err(TxError::WriteWithoutRead {object: *object_id});
+                return Err(TxError::WriteWithoutRead {
+                    object: *object_id,
+                });
             }
         }
 
@@ -71,54 +78,32 @@ impl TransactionCell {
     }
 
     /// Computes the deterministic identifier for this transaction cell.
+    ///
+    /// IMPORTANT:
+    /// - Depends only on declared intent
+    /// - Must NOT depend on execution output
+    /// - Slot is intentionally excluded
     pub fn id(&self) -> Hash {
         let mut bytes = Vec::new();
 
-        // 1️⃣ Slot
-        bytes.extend_from_slice(&self.slot.value().to_be_bytes());
-
-        // 2️⃣ ReadSet (canonical order)
-        let read: BTreeMap<_, _> = self.read_set.iter().collect();
-        for (id, version) in read {
+        // 1️⃣ ReadSet (canonical order)
+        for (id, version) in &self.read_set {
             bytes.extend_from_slice(id.as_hash().as_bytes());
             bytes.extend_from_slice(&version.to_be_bytes());
         }
 
-        // 3️⃣ WriteSet (canonical order)
-        let write: BTreeMap<_, _> = self.write_set.iter().collect();
-        for (id, obj) in write {
+        // 2️⃣ WriteSet (canonical order)
+        for (id, intent) in &self.write_set {
             bytes.extend_from_slice(id.as_hash().as_bytes());
-            bytes.extend_from_slice(&obj.version().to_be_bytes());
-            bytes.extend_from_slice(obj.data());
+            bytes.push(*intent as u8);
         }
 
-        // 4️⃣ CallData
+        // 3️⃣ CallData
         bytes.extend_from_slice(self.call.target.as_hash().as_bytes());
         bytes.extend_from_slice(&self.call.selector);
         bytes.extend_from_slice(&self.call.payload);
 
-        // 5️⃣ Final hash
         Hash::new(blake3::hash(&bytes).into())
-    }
-
-    /// The caller must be authorized to perform all writes
-    pub fn validate_ownership(&self, caller: Address, state: &StateStore) -> Result<(), TxError> {
-        for object_id in self.write_set.keys() {
-            let object = state.get(object_id)
-                .ok_or(TxError::ObjectNotFound {
-                    object: *object_id,
-                })?;
-            
-            if object.owner() != caller {
-                return Err(TxError::UnauthorizedWrite {
-                    object: *object_id,
-                    owner: object.owner(),
-                    caller,
-                });
-            }
-        }
-
-        Ok(())
     }
 
     /// Returns the slot of the transaction cell.
@@ -131,8 +116,8 @@ impl TransactionCell {
         &self.read_set
     }
 
-    /// Returns the write set of the transaction cell.
-    pub fn write_set(&self) -> &WriteSet {
+    /// Returns the write intent set of the transaction cell.
+    pub fn write_set(&self) -> &BTreeMap<ObjectId, WriteIntent> {
         &self.write_set
     }
 

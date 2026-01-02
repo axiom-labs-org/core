@@ -1,5 +1,5 @@
 /// Imports and dependencies
-use axiom_types::{Address, ObjectId};
+use axiom_types::{ObjectId};
 
 // -------------------------------------------------------------------------------------------------------------------------- //
 
@@ -7,11 +7,6 @@ use axiom_types::{Address, ObjectId};
 #[derive(Debug)]
 pub enum TxError {
     WriteWithoutRead {object: ObjectId},
-    UnauthorizedWrite {
-        object: ObjectId,
-        owner: Address,
-        caller: Address,
-    },
     ObjectNotFound {object: ObjectId},
 }
 

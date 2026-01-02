@@ -10,20 +10,6 @@ use crate::{StateObject, StateStore, Version, NonceError};
 /// This defines STATE LAYOUT, not a type.
 const NONCE_DOMAIN: &[u8] = b"axiom::nonce";
 
-/// Nonce value stored in state
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Nonce(pub u64);
-
-impl Nonce {
-    pub fn zero() -> Self {
-        Nonce(0)
-    }
-
-    pub fn next(self) -> Self {
-        Nonce(self.0 + 1)
-    }
-}
-
 /// Deterministically derive the nonce ObjectId for an address.
 ///
 /// There is exactly ONE nonce object per address.

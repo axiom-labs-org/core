@@ -65,7 +65,7 @@ impl StateObject {
 
     // Produce a new version of the object with updated data
     // The original object remains unchanged
-    pub fn with_data(self, new_data: Vec<u8>) -> Self {
+    pub fn next_with_data(&self, new_data: Vec<u8>) -> Self {
         Self {
             id: self.id,
             owner: self.owner,

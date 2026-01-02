@@ -49,10 +49,14 @@ impl ExternalTransaction {
         bytes.extend_from_slice(&self.nonce.to_le_bytes());
 
         // Cells
-        for cell in &self.cells {
-            bytes.extend_from_slice(cell.id().as_bytes());
+        let mut cell_ids: Vec<_> = self.cells.iter().map(|c| c.id()).collect();
+        cell_ids.sort();
+
+        for id in cell_ids {
+            bytes.extend_from_slice(id.as_bytes());
         }
 
+        // Compute and return the hash
         Hash::new(blake3::hash(&bytes).into())
     }
 }
