@@ -48,6 +48,16 @@ impl StateObject {
         self.version
     }
 
+    // Produce a new version of the object with incremented version number
+    pub fn next_version(&self) -> Self {
+        Self {
+            id: self.id,
+            owner: self.owner,
+            version: self.version + 1,
+            data: self.data.clone(),
+        }
+    }
+
     // Return a reference to the object data
     pub fn data(&self) -> &[u8] {
         &self.data  

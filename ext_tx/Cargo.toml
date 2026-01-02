@@ -7,4 +7,5 @@ license = "Apache-2.0"
 [dependencies]
 axiom-types = { path = "../types" }
 axiom-tx = { path = "../tx" }
+axiom-state = { path = "../state" }
 blake3 = "1.5"

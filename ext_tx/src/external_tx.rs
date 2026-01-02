@@ -3,6 +3,7 @@
 /// Module for transaction-related types and utilities.
 use axiom_tx::TransactionCell;
 use axiom_types::{Address, Hash};
+use axiom_state::{Version};
 
 // -------------------------------------------------------------------------------------------------------------------------- //
 
@@ -24,7 +25,7 @@ pub struct ExternalTransaction {
     pub signer: Address,
 
     /// Nonce to prevent replay attacks.
-    pub nonce: u64,
+    pub nonce: Version,
 
     /// Cells involved in the transaction.
     pub cells: Vec<TransactionCell>,
