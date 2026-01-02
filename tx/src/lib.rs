@@ -6,5 +6,5 @@
 pub mod cell;
 pub mod error;
 
-pub use cell::{TransactionCell, CallData};
+pub use cell::{TransactionCell, CallData, WriteIntent};
 pub use error::TxError;

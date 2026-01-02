@@ -1,5 +1,5 @@
 [workspace]
-members = ["ext_tx","state", "tx",
+members = ["execution","ext_tx","state", "tx",
     "types"
 ]
 resolver = "2"
