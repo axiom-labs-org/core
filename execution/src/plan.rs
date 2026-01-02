@@ -2,7 +2,7 @@
 /// Imports and dependencies
 use std::collections::BTreeMap;
 
-use axiom_state::{ReadSet, StateObject};
+use axiom_state::{ReadSet, StateObject, StateStore};
 use axiom_tx::{TransactionCell, WriteIntent};
 use axiom_ext_tx::PreparedExternalTransaction;
 use axiom_types::ObjectId;
@@ -57,11 +57,14 @@ pub struct ExecutionPlan {
 /// - validate ownership
 pub fn build_execution_plan(
     petx: PreparedExternalTransaction,
+    state: &StateStore,
 ) -> Result<ExecutionPlan, PlanningError> {
     let mut merged_read_set: ReadSet = ReadSet::new();
     let mut merged_write_intents: BTreeMap<ObjectId, WriteIntent> = BTreeMap::new();
     let mut forced_writes: BTreeMap<ObjectId, StateObject> = BTreeMap::new();
-
+    
+    let signer = petx.tx.signer;
+    
     // ---------------------------------------------------------------------
     // 1️⃣ Inject forced nonce write
     // ---------------------------------------------------------------------
@@ -110,8 +113,38 @@ pub fn build_execution_plan(
         }
     }
 
+
     // ---------------------------------------------------------------------
-    // 4️⃣ Build final execution plan
+    // 4️⃣ OWNERSHIP VALIDATION (NEW)
+    // ---------------------------------------------------------------------
+
+    for (object_id, intent) in &merged_write_intents {
+        match intent {
+            WriteIntent::Create => {
+                // Object must not already exist
+                if state.get(object_id).is_some() {
+                    return Err(PlanningError::WriteIntentConflict { object: *object_id });
+                }
+            }
+
+            WriteIntent::Modify | WriteIntent::Delete => {
+                let object = state.get(object_id).ok_or(
+                    PlanningError::ObjectNotFound { object: *object_id },
+                )?;
+
+                if object.owner() != signer {
+                    return Err(PlanningError::UnauthorizedWrite { 
+                        object: *object_id, 
+                        owner: object.owner(), 
+                        signer 
+                    });
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // 5 Build final execution plan
     // ---------------------------------------------------------------------
     Ok(ExecutionPlan {
         read_set: merged_read_set,

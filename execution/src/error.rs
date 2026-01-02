@@ -1,5 +1,5 @@
 
-use axiom_types::ObjectId;
+use axiom_types::{Address, ObjectId};
 
 #[derive(Debug)]
 pub enum PlanningError {
@@ -13,5 +13,16 @@ pub enum PlanningError {
     /// Conflicting write intents for the same object.
     WriteIntentConflict {
         object: ObjectId,
+    },
+
+    // NEW: ownership
+    ObjectNotFound {
+        object: ObjectId,
+    },
+
+    UnauthorizedWrite {
+        object: ObjectId,
+        owner: Address,
+        signer: Address,
     },
 }
