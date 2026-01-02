@@ -2,15 +2,20 @@
 /// Imports and dependencies
 use std::collections::BTreeMap;
 
-use axiom_state::{ReadSet, StateObject, StateStore};
+use axiom_state::{ReadSet, StateObject, StateStore, balance_object_id, decode_balance, encode_balance};
 use axiom_tx::{TransactionCell, WriteIntent};
 use axiom_ext_tx::PreparedExternalTransaction;
 use axiom_types::ObjectId;
+
 use crate::PlanningError;
+
 
 // -------------------------------------------------------------------------------------------------------------------------- //
 
 //----------------------------------------------- Execution Plan -----------------------------------------------//
+
+/// Temporary base_fee
+const BASE_FEE: u64 = 1;
 
 /// A fully prepared, execution-ready plan derived from an
 /// authorized external transaction.
@@ -64,7 +69,8 @@ pub fn build_execution_plan(
     let mut forced_writes: BTreeMap<ObjectId, StateObject> = BTreeMap::new();
     
     let signer = petx.tx.signer;
-    
+    let balance_id = balance_object_id(signer);
+
     // ---------------------------------------------------------------------
     // 1️⃣ Inject forced nonce write
     // ---------------------------------------------------------------------
@@ -72,7 +78,27 @@ pub fn build_execution_plan(
     forced_writes.insert(nonce_id, nonce_object);
 
     // ---------------------------------------------------------------------
-    // 2️⃣ Merge cell read sets
+    // Inject forced fee deduction
+    // ---------------------------------------------------------------------
+    let balance_obj = state.get(&balance_id).ok_or(
+        PlanningError::ObjectNotFound { object: balance_id },
+    )?;
+
+    let current_balance = decode_balance(balance_obj);
+
+    if current_balance < BASE_FEE {
+        return Err(PlanningError::InsufficientBalance { 
+            available: current_balance, 
+            required: BASE_FEE 
+        });
+    }
+
+    let new_balance = current_balance - BASE_FEE;
+    let updated_balance = balance_obj.next_with_data(encode_balance(new_balance));
+    forced_writes.insert(balance_id, updated_balance);
+    
+    // ---------------------------------------------------------------------
+    // Merge cell read sets
     // ---------------------------------------------------------------------
     for cell in &petx.tx.cells {
         for (object_id, version) in cell.read_set() {
@@ -94,7 +120,7 @@ pub fn build_execution_plan(
     }
 
     // ---------------------------------------------------------------------
-    // 3️⃣ Merge cell write intents
+    // Merge cell write intents
     // ---------------------------------------------------------------------
     for cell in &petx.tx.cells {
         for (object_id, intent) in cell.write_set() {
@@ -115,7 +141,7 @@ pub fn build_execution_plan(
 
 
     // ---------------------------------------------------------------------
-    // 4️⃣ OWNERSHIP VALIDATION (NEW)
+    // OWNERSHIP VALIDATION
     // ---------------------------------------------------------------------
 
     for (object_id, intent) in &merged_write_intents {

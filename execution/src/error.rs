@@ -25,4 +25,10 @@ pub enum PlanningError {
         owner: Address,
         signer: Address,
     },
+
+    // Insufficient balance to cover transaction fees.
+    InsufficientBalance {
+        available: u64,
+        required: u64,
+    },
 }
