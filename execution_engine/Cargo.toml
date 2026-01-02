@@ -1,0 +1,12 @@
+[package]
+name = "axiom-execution_engine"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[dependencies]
+axiom-execution = { path = "../execution" }
+axiom-state = { path = "../state" }
+axiom-tx = { path = "../tx" }
+axiom-ext_tx = { path = "../ext_tx" }
+axiom-types = { path = "../types" }

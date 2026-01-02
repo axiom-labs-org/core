@@ -25,6 +25,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "axiom-execution_engine"
+version = "0.1.0"
+dependencies = [
+ "axiom-execution",
+ "axiom-ext_tx",
+ "axiom-state",
+ "axiom-tx",
+ "axiom-types",
+]
+
+[[package]]
 name = "axiom-ext_tx"
 version = "0.1.0"
 dependencies = [
@@ -40,6 +51,18 @@ version = "0.1.0"
 dependencies = [
  "axiom-types",
  "blake3",
+]
+
+[[package]]
+name = "axiom-state_diff"
+version = "0.1.0"
+dependencies = [
+ "axiom-execution",
+ "axiom-execution_engine",
+ "axiom-ext_tx",
+ "axiom-state",
+ "axiom-tx",
+ "axiom-types",
 ]
 
 [[package]]

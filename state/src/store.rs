@@ -102,6 +102,13 @@ impl StateStore {
 
         Ok(())
     }   
+
+    /// Insert or update a state object.
+    pub fn insert_or_update(&mut self, object: StateObject) -> Result<(), StateError> {
+        self.objects.insert(object.id(), object);
+        Ok(())
+    }
+    
 }
 
 // -------------------------------------------------------------------------------------------------------------------------- //

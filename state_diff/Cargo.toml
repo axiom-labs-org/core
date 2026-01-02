@@ -1,0 +1,13 @@
+[package]
+name = "axiom-state_diff"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[dependencies]
+axiom-types = { path = "../types" }
+axiom-state = { path = "../state" }
+axiom-execution = { path = "../execution" }
+axiom-execution_engine = { path = "../execution_engine" }
+axiom-tx = { path = "../tx" }
+axiom-ext_tx = { path = "../ext_tx" }
