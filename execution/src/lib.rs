@@ -6,5 +6,5 @@
 pub mod plan;
 pub mod error;
 
-pub use plan::ExecutionPlan;
+pub use plan::{ExecutionPlan, build_execution_plan};
 pub use error::PlanningError;

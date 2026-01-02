@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use axiom_types::ObjectId;
-use axiom_state::StateObject;
+use axiom_state::{StateObject, StateStore};
 use axiom_execution::ExecutionPlan;
 
 use crate::context::ExecutionContext;
@@ -18,6 +18,12 @@ pub trait StateView {
     /// - `Some(&StateObject)` if the object exists
     /// - `None` if the object does not exist
     fn get_object(&self, id: &ObjectId) -> Option<&StateObject>;
+}
+
+impl StateView for StateStore {
+    fn get_object(&self, id: &ObjectId) -> Option<&StateObject> {
+        self.get(id)
+    }
 }
 
 /// Result of executing an execution plan.

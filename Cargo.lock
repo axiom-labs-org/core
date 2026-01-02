@@ -46,6 +46,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "axiom-protocol"
+version = "0.1.0"
+dependencies = [
+ "axiom-execution",
+ "axiom-execution_engine",
+ "axiom-ext_tx",
+ "axiom-state",
+ "axiom-state_diff",
+ "axiom-tx",
+ "axiom-types",
+]
+
+[[package]]
 name = "axiom-state"
 version = "0.1.0"
 dependencies = [

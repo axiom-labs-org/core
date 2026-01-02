@@ -12,7 +12,9 @@
 pub mod context;
 pub mod engine;
 pub mod error;
+pub mod reference;
 
 pub use context::ExecutionContext;
 pub use engine::{ExecutionEngine, ExecutionOutcome, StateView};
 pub use error::ExecutionError;
+pub use reference::ReferenceExecutionEngine;
