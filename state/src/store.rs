@@ -108,6 +108,11 @@ impl StateStore {
         self.objects.insert(object.id(), object);
         Ok(())
     }
+
+    /// Iterate over all state objects (read-only).
+    pub fn objects_iter(&self) -> impl Iterator<Item = (&ObjectId, &StateObject)> {
+        self.objects.iter()
+    }
     
 }
 
